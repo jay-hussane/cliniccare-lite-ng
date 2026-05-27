@@ -88,7 +88,7 @@ function BillingPage() {
       toast.success("Payment recorded");
       setReceipt({
         patient_name: selected!.full_name,
-        patient_code: selected!.patient_code,
+        patient_code: selected!.patient_code ?? "",
         service_description: data.service_description,
         amount: Number(data.amount),
         payment_method: data.payment_method,
