@@ -14,7 +14,139 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      billing: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          patient_id: string
+          payment_method: string
+          service_description: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          patient_id: string
+          payment_method: string
+          service_description: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          patient_id?: string
+          payment_method?: string
+          service_description?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consultations: {
+        Row: {
+          created_at: string
+          diagnosis: string | null
+          id: string
+          notes: string | null
+          patient_id: string
+          prescription: string | null
+        }
+        Insert: {
+          created_at?: string
+          diagnosis?: string | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          prescription?: string | null
+        }
+        Update: {
+          created_at?: string
+          diagnosis?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          prescription?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultations_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drugs: {
+        Row: {
+          created_at: string
+          id: string
+          low_stock_threshold: number
+          name: string
+          quantity: number
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          low_stock_threshold?: number
+          name: string
+          quantity?: number
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          low_stock_threshold?: number
+          name?: string
+          quantity?: number
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      patients: {
+        Row: {
+          address: string | null
+          age: number | null
+          created_at: string
+          full_name: string
+          gender: string | null
+          id: string
+          patient_code: string | null
+          phone: string
+        }
+        Insert: {
+          address?: string | null
+          age?: number | null
+          created_at?: string
+          full_name: string
+          gender?: string | null
+          id?: string
+          patient_code?: string | null
+          phone: string
+        }
+        Update: {
+          address?: string | null
+          age?: number | null
+          created_at?: string
+          full_name?: string
+          gender?: string | null
+          id?: string
+          patient_code?: string | null
+          phone?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
