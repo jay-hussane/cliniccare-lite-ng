@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { formatDate, formatNaira } from "@/lib/format";
 import { Banknote, Building2, Printer, Search } from "lucide-react";
 
-export const Route = createFileRoute("/billing")({
+export const Route = createFileRoute("/_authenticated/billing")({
   head: () => ({
     meta: [
       { title: "Billing — ClinicCare Lite" },

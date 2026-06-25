@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Users, Stethoscope, Receipt, Pill, ArrowRight, AlertTriangle } from "lucide-react";
 import { formatNaira } from "@/lib/format";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Dashboard — ClinicCare Lite" },
