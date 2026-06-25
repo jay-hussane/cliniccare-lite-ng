@@ -90,6 +90,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <button onClick={handleSignOut} aria-label="Sign out" className="p-2 text-muted-foreground hover:text-foreground">
             <LogOut className="h-5 w-5" />
           </button>
+        </header>
+
 
         <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-x-hidden">
           <div className="max-w-7xl mx-auto w-full">{children}</div>
