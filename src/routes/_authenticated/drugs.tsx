@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { Plus, Minus, Pill } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/drugs")({
+export const Route = createFileRoute("/_authenticated/drugs")({
   head: () => ({
     meta: [
       { title: "Drug Inventory — ClinicCare Lite" },

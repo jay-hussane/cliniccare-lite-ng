@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
 import { Search } from "lucide-react";
 
-export const Route = createFileRoute("/consultations")({
+export const Route = createFileRoute("/_authenticated/consultations")({
   head: () => ({
     meta: [
       { title: "Consultations — ClinicCare Lite" },

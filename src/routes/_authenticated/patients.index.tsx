@@ -14,7 +14,7 @@ import { Plus, Phone, Search, User } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
 
-export const Route = createFileRoute("/patients/")({
+export const Route = createFileRoute("/_authenticated/patients/")({
   head: () => ({
     meta: [
       { title: "Patients — ClinicCare Lite" },

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Phone, MapPin, User, Stethoscope, Receipt } from "lucide-react";
 import { formatDate, formatNaira } from "@/lib/format";
 
-export const Route = createFileRoute("/patients/$id")({
+export const Route = createFileRoute("/_authenticated/patients/$id")({
   head: () => ({
     meta: [{ title: "Patient profile — ClinicCare Lite" }],
   }),
