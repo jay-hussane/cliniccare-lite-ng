@@ -110,9 +110,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
             <div className="font-semibold">ClinicCare Lite</div>
           </div>
-          <button onClick={handleSignOut} aria-label="Sign out" className="p-2 text-muted-foreground hover:text-foreground">
-            <LogOut className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <Link to="/profile" aria-label="My profile" className="p-2 text-muted-foreground hover:text-foreground">
+              <UserCog className="h-5 w-5" />
+            </Link>
+            <button onClick={handleSignOut} aria-label="Sign out" className="p-2 text-muted-foreground hover:text-foreground">
+              <LogOut className="h-5 w-5" />
+            </button>
+          </div>
         </header>
 
 
@@ -122,8 +127,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Bottom nav (mobile) */}
         <nav className="md:hidden fixed bottom-0 inset-x-0 bg-card border-t z-40">
-          <ul className="grid grid-cols-5">
-            {nav.map(({ to, label, icon: Icon }) => (
+          <ul className="grid" style={{ gridTemplateColumns: `repeat(${visibleNav.length}, minmax(0, 1fr))` }}>
+            {visibleNav.map(({ to, label, icon: Icon }) => (
               <li key={to}>
                 <Link
                   to={to}
@@ -139,6 +144,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             ))}
           </ul>
         </nav>
+
       </div>
     </div>
   );
