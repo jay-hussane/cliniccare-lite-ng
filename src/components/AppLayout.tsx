@@ -7,23 +7,30 @@ import {
   Pill,
   HeartPulse,
   LogOut,
+  ShieldCheck,
+  UserCog,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { ROLE_LABELS, useCurrentUser, type AppRole } from "@/hooks/useCurrentUser";
 
 const nav = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/patients", label: "Patients", icon: Users },
-  { to: "/consultations", label: "Consultations", icon: Stethoscope },
-  { to: "/billing", label: "Billing", icon: Receipt },
-  { to: "/drugs", label: "Inventory", icon: Pill },
+  { to: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "doctor", "nurse", "receptionist"] },
+  { to: "/patients", label: "Patients", icon: Users, roles: ["admin", "doctor", "nurse", "receptionist"] },
+  { to: "/consultations", label: "Consultations", icon: Stethoscope, roles: ["admin", "doctor", "nurse"] },
+  { to: "/billing", label: "Billing", icon: Receipt, roles: ["admin", "receptionist"] },
+  { to: "/drugs", label: "Inventory", icon: Pill, roles: ["admin", "nurse", "receptionist"] },
+  { to: "/staff", label: "Staff", icon: ShieldCheck, roles: ["admin"] },
 ] as const;
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { data: me } = useCurrentUser();
+  const role: AppRole = me?.role ?? "receptionist";
+  const visibleNav = nav.filter((item) => (item.roles as readonly string[]).includes(role));
 
   const handleSignOut = async () => {
     await queryClient.cancelQueries();
@@ -34,6 +41,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const isActive = (to: string) =>
     to === "/" ? pathname === "/" : pathname === to || pathname.startsWith(to + "/");
+
 
   return (
     <div className="min-h-screen flex bg-background">
