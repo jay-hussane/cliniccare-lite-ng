@@ -57,7 +57,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <nav className="p-3 space-y-1">
-          {nav.map(({ to, label, icon: Icon }) => (
+          {visibleNav.map(({ to, label, icon: Icon }) => (
             <Link
               key={to}
               to={to}
@@ -74,6 +74,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
         <div className="mt-auto p-3 space-y-2">
+          <Link
+            to="/profile"
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+              isActive("/profile")
+                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                : "text-sidebar-foreground hover:bg-sidebar-accent/60",
+            )}
+          >
+            <UserCog className="h-4.5 w-4.5" />
+            <span className="min-w-0 truncate">
+              {me?.profile?.full_name || me?.email || "My profile"}
+            </span>
+          </Link>
+          <div className="px-3 text-[11px] text-muted-foreground">{ROLE_LABELS[role]}</div>
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/60 transition-colors"
@@ -81,8 +96,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <LogOut className="h-4.5 w-4.5" />
             <span>Sign out</span>
           </button>
-          <div className="px-3 text-[11px] text-muted-foreground">MVP build · v0.1</div>
         </div>
+
       </aside>
 
       {/* Main */}
