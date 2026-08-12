@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/auth")({
-  ssr: false,
+  
   head: () => ({
     meta: [
       { title: "Staff Sign In — ClinicCare Lite" },
