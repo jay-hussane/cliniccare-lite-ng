@@ -51,30 +51,46 @@ export type Database = {
       }
       consultations: {
         Row: {
+          assigned_doctor: string | null
           created_at: string
           diagnosis: string | null
           id: string
           notes: string | null
+          paid: boolean
           patient_id: string
           prescription: string | null
+          status: string
         }
         Insert: {
+          assigned_doctor?: string | null
           created_at?: string
           diagnosis?: string | null
           id?: string
           notes?: string | null
+          paid?: boolean
           patient_id: string
           prescription?: string | null
+          status?: string
         }
         Update: {
+          assigned_doctor?: string | null
           created_at?: string
           diagnosis?: string | null
           id?: string
           notes?: string | null
+          paid?: boolean
           patient_id?: string
           prescription?: string | null
+          status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "consultations_assigned_doctor_fkey"
+            columns: ["assigned_doctor"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "consultations_patient_id_fkey"
             columns: ["patient_id"]
