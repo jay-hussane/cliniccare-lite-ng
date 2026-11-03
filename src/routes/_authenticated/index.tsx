@@ -1,9 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { statusLabel } from "@/lib/queue";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/card";
-import { Users, Stethoscope, Receipt, Pill, ArrowRight, AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Users, Stethoscope, Receipt, Pill, ArrowRight, AlertTriangle, BellRing } from "lucide-react";
 import { formatNaira } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/")({
@@ -23,6 +27,25 @@ function startOfTodayISO() {
 }
 
 function Dashboard() {
+  const { data: me } = useCurrentUser();
+
+  // Patients assigned to me that are still waiting or in consultation
+  const { data: myQueue = [] } = useQuery({
+    queryKey: ["doctor-banner", me?.id ?? null],
+    enabled: !!me?.id,
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("consultations")
+        .select("id, status, paid, patients(full_name, patient_code)")
+        .eq("assigned_doctor", me!.id)
+        .in("status", ["waiting", "in_consultation"])
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data as { id: string; status: string; paid: boolean; patients: { full_name: string; patient_code: string | null } | null }[];
+    },
+  });
+
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
@@ -44,6 +67,8 @@ function Dashboard() {
     },
   });
 
+
+
   const stats = [
     { label: "Total Patients", value: data?.patients ?? 0, icon: Users, color: "bg-primary/10 text-primary", to: "/patients" as const },
     { label: "Today's Consultations", value: data?.consultations ?? 0, icon: Stethoscope, color: "bg-secondary/10 text-secondary", to: "/consultations" as const },
@@ -57,6 +82,38 @@ function Dashboard() {
         title="Dashboard"
         subtitle={`Welcome back · ${new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" })}`}
       />
+
+      {myQueue.length > 0 && (
+        <Card className="mb-5 p-4 md:p-5 border-primary/30 bg-primary-soft/50">
+          <div className="flex items-center gap-2 mb-3">
+            <BellRing className="h-4 w-4 text-primary" />
+            <h3 className="font-semibold text-primary">You have {myQueue.length} patient{myQueue.length === 1 ? "" : "s"} waiting for you</h3>
+          </div>
+          <ul className="space-y-1.5 mb-3">
+            {myQueue.slice(0, 5).map((q) => (
+              <li key={q.id} className="flex items-center justify-between gap-3 text-sm">
+                <span className="truncate">
+                  <span className="font-medium">{q.patients?.full_name ?? "Unknown patient"}</span>
+                  <span className="text-xs text-muted-foreground ml-2">{q.patients?.patient_code}</span>
+                </span>
+                <span className="flex items-center gap-2 shrink-0">
+                  <Badge variant="outline">{statusLabel(q.status)}</Badge>
+                  <Badge variant={q.paid ? "secondary" : "destructive"}>{q.paid ? "Paid" : "Not paid"}</Badge>
+                </span>
+              </li>
+            ))}
+            {myQueue.length > 5 && (
+              <li className="text-xs text-muted-foreground">+ {myQueue.length - 5} more</li>
+            )}
+          </ul>
+          <Button asChild variant="secondary" size="sm" className="gap-2">
+            <Link to="/consultations">Open patient queue</Link>
+          </Button>
+        </Card>
+      )}
+
+
+
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
         {stats.map((s) => (
