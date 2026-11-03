@@ -83,6 +83,38 @@ function Dashboard() {
         subtitle={`Welcome back · ${new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" })}`}
       />
 
+      {myQueue.length > 0 && (
+        <Card className="mb-5 p-4 md:p-5 border-primary/30 bg-primary-soft/50">
+          <div className="flex items-center gap-2 mb-3">
+            <BellRing className="h-4 w-4 text-primary" />
+            <h3 className="font-semibold text-primary">You have {myQueue.length} patient{myQueue.length === 1 ? "" : "s"} waiting for you</h3>
+          </div>
+          <ul className="space-y-1.5 mb-3">
+            {myQueue.slice(0, 5).map((q) => (
+              <li key={q.id} className="flex items-center justify-between gap-3 text-sm">
+                <span className="truncate">
+                  <span className="font-medium">{q.patients?.full_name ?? "Unknown patient"}</span>
+                  <span className="text-xs text-muted-foreground ml-2">{q.patients?.patient_code}</span>
+                </span>
+                <span className="flex items-center gap-2 shrink-0">
+                  <Badge variant="outline">{statusLabel(q.status)}</Badge>
+                  <Badge variant={q.paid ? "secondary" : "destructive"}>{q.paid ? "Paid" : "Not paid"}</Badge>
+                </span>
+              </li>
+            ))}
+            {myQueue.length > 5 && (
+              <li className="text-xs text-muted-foreground">+ {myQueue.length - 5} more</li>
+            )}
+          </ul>
+          <Button asChild variant="secondary" size="sm" className="gap-2">
+            <Link to="/consultations">Open patient queue</Link>
+          </Button>
+        </Card>
+      )}
+      {me?.id && waiting.length === 0 && withDoctor.length === 0 && null}
+
+
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
         {stats.map((s) => (
           <Link to={s.to} key={s.label}>
