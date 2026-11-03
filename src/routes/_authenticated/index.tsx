@@ -111,7 +111,7 @@ function Dashboard() {
           </Button>
         </Card>
       )}
-      {me?.id && waiting.length === 0 && withDoctor.length === 0 && null}
+
 
 
 
