@@ -5,7 +5,9 @@ import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Phone, MapPin, User, Stethoscope, Receipt } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { formatDate, formatNaira } from "@/lib/format";
+import { statusLabel } from "@/lib/queue";
 
 export const Route = createFileRoute("/_authenticated/patients/$id")({
   head: () => ({
@@ -69,7 +71,15 @@ function PatientProfile() {
             <ul className="divide-y">
               {data.consultations.map((c) => (
                 <li key={c.id} className="py-3">
-                  <div className="text-xs text-muted-foreground">{formatDate(c.created_at)}</div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-xs text-muted-foreground">{formatDate(c.created_at)}</div>
+                    <span className="flex items-center gap-1.5 shrink-0">
+                      <Badge variant="outline">{statusLabel(c.status)}</Badge>
+                      {c.status !== "completed" && (
+                        <Badge variant={c.paid ? "secondary" : "destructive"}>{c.paid ? "Paid" : "Not paid"}</Badge>
+                      )}
+                    </span>
+                  </div>
                   {c.diagnosis && <div className="font-medium mt-1">Diagnosis: {c.diagnosis}</div>}
                   {c.notes && <div className="text-sm text-muted-foreground mt-1 whitespace-pre-line">{c.notes}</div>}
                   {c.prescription && <div className="text-sm mt-1"><span className="text-muted-foreground">Rx:</span> <span className="whitespace-pre-line">{c.prescription}</span></div>}
