@@ -25,6 +25,25 @@ function startOfTodayISO() {
 }
 
 function Dashboard() {
+  const { data: me } = useCurrentUser();
+
+  // Patients assigned to me that are still waiting or in consultation
+  const { data: myQueue = [] } = useQuery({
+    queryKey: ["doctor-banner", me?.id ?? null],
+    enabled: !!me?.id,
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("consultations")
+        .select("id, status, paid, patients(full_name, patient_code)")
+        .eq("assigned_doctor", me!.id)
+        .in("status", ["waiting", "in_consultation"])
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data as { id: string; status: string; paid: boolean; patients: { full_name: string; patient_code: string | null } | null }[];
+    },
+  });
+
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
@@ -45,6 +64,10 @@ function Dashboard() {
       };
     },
   });
+
+  const waiting = myQueue.filter((q) => q.status === "waiting");
+  const withDoctor = myQueue.filter((q) => q.status === "in_consultation");
+
 
   const stats = [
     { label: "Total Patients", value: data?.patients ?? 0, icon: Users, color: "bg-primary/10 text-primary", to: "/patients" as const },
