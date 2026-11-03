@@ -5,7 +5,9 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { statusLabel } from "@/lib/queue";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/card";
-import { Users, Stethoscope, Receipt, Pill, ArrowRight, AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Users, Stethoscope, Receipt, Pill, ArrowRight, AlertTriangle, BellRing } from "lucide-react";
 import { formatNaira } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/")({
@@ -65,8 +67,6 @@ function Dashboard() {
     },
   });
 
-  const waiting = myQueue.filter((q) => q.status === "waiting");
-  const withDoctor = myQueue.filter((q) => q.status === "in_consultation");
 
 
   const stats = [
