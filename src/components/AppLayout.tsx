@@ -18,7 +18,7 @@ import { ROLE_LABELS, useCurrentUser, type AppRole } from "@/hooks/useCurrentUse
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "doctor", "nurse", "receptionist"] },
   { to: "/patients", label: "Patients", icon: Users, roles: ["admin", "doctor", "nurse", "receptionist"] },
-  { to: "/consultations", label: "Consultations", icon: Stethoscope, roles: ["admin", "doctor", "nurse"] },
+  { to: "/consultations", label: "Consultations", icon: Stethoscope, roles: ["admin", "doctor", "nurse", "receptionist"] },
   { to: "/billing", label: "Billing", icon: Receipt, roles: ["admin", "receptionist"] },
   { to: "/drugs", label: "Inventory", icon: Pill, roles: ["admin", "nurse", "receptionist"] },
   { to: "/staff", label: "Staff", icon: ShieldCheck, roles: ["admin"] },

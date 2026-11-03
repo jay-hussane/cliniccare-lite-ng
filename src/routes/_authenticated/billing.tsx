@@ -97,6 +97,9 @@ function BillingPage() {
       setForm({ service: "", amount: "", method: "Cash" });
       qc.invalidateQueries({ queryKey: ["bills"] });
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["visit-queue"] });
+      qc.invalidateQueries({ queryKey: ["visit-patient-bills"] });
+
     },
     onError: (e: Error) => toast.error(e.message),
   });
