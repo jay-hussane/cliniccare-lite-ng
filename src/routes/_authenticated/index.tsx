@@ -108,7 +108,7 @@ function Dashboard() {
 
   const waitingForMe = queue.filter((q) => q.status === "waiting" && (!meId || q.assigned_doctor === meId)).length;
 
-  const statCards: { label: string; value: string | number; icon: typeof Users; color: string; to: string }[] =
+  const statCards: { label: string; value: string | number; icon: typeof Users; color: string; to: "/patients" | "/consultations" | "/billing" | "/drugs" | "/staff" } =
     role === "doctor"
       ? [
           { label: "Waiting for me", value: queue.filter((q) => q.status === "waiting").length, icon: Clock, color: "bg-warning/20 text-warning-foreground", to: "/consultations" },
