@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,15 @@ export const Route = createFileRoute("/_authenticated/billing")({
       { name: "description", content: "Create bills and receipts; track payments." },
     ],
   }),
+  beforeLoad: async () => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) throw redirect({ to: "/auth" });
+    const [a, b] = await Promise.all([
+      supabase.rpc("has_role", { _user_id: userData.user.id, _role: "admin" }),
+      supabase.rpc("has_role", { _user_id: userData.user.id, _role: "receptionist" }),
+    ]);
+    if (!a.data && !b.data) throw redirect({ to: "/" });
+  },
   component: BillingPage,
 });
 
