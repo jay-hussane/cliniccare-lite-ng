@@ -19,6 +19,16 @@ export const Route = createFileRoute("/_authenticated/drugs")({
       { name: "description", content: "Track drug stock and low stock alerts." },
     ],
   }),
+  beforeLoad: async () => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) throw redirect({ to: "/auth" });
+    const checks = await Promise.all(
+      (["admin", "nurse", "receptionist"] as const).map((r) =>
+        supabase.rpc("has_role", { _user_id: userData.user!.id, _role: r })
+      )
+    );
+    if (!checks.some((c) => c.data)) throw redirect({ to: "/" });
+  },
   component: DrugsPage,
 });
 

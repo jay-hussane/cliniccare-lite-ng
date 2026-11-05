@@ -21,11 +21,13 @@ export const Route = createFileRoute("/_authenticated/billing")({
     ],
   }),
   beforeLoad: async () => {
-    const { data: allowed } = await supabase.rpc("has_any_role", {
-      _user_id_param: (await supabase.auth.getUser()).data.user?.id ?? "",
-      _roles_param: ["admin", "receptionist"],
-    });
-    if (!allowed) throw redirect({ to: "/" });
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) throw redirect({ to: "/auth" });
+    const [a, b] = await Promise.all([
+      supabase.rpc("has_role", { _user_id: userData.user.id, _role: "admin" }),
+      supabase.rpc("has_role", { _user_id: userData.user.id, _role: "receptionist" }),
+    ]);
+    if (!a.data && !b.data) throw redirect({ to: "/" });
   },
   component: BillingPage,
 });
