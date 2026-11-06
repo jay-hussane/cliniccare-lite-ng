@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { Plus, Minus, Pill } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export const Route = createFileRoute("/_authenticated/drugs")({
   head: () => ({
@@ -41,6 +42,8 @@ function statusOf(d: { quantity: number; low_stock_threshold: number }) {
 function DrugsPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const { data: me } = useCurrentUser();
+  const canManageInventory = me?.role === "admin" || me?.role === "nurse";
 
   const { data: drugs = [], isLoading } = useQuery({
     queryKey: ["drugs"],
@@ -68,7 +71,7 @@ function DrugsPage() {
       <PageHeader
         title="Drug Inventory"
         subtitle="Track stock and get low-stock alerts"
-        action={
+        action={canManageInventory ? (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button size="lg" className="gap-2"><Plus className="h-4 w-4" /> Add drug</Button>
@@ -78,7 +81,7 @@ function DrugsPage() {
               <DrugForm onDone={() => setOpen(false)} />
             </DialogContent>
           </Dialog>
-        }
+        ) : undefined}
       />
 
       <Card className="overflow-hidden">
@@ -116,12 +119,16 @@ function DrugsPage() {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center justify-end gap-1">
-                          <Button size="icon" variant="outline" onClick={() => adjust.mutate({ id: d.id, qty: d.quantity - 1 })}>
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <Button size="icon" variant="outline" onClick={() => adjust.mutate({ id: d.id, qty: d.quantity + 1 })}>
-                            <Plus className="h-4 w-4" />
-                          </Button>
+                          {canManageInventory && (
+                            <>
+                              <Button size="icon" variant="outline" aria-label={`Decrease ${d.name} stock`} onClick={() => adjust.mutate({ id: d.id, qty: d.quantity - 1 })}>
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                              <Button size="icon" variant="outline" aria-label={`Increase ${d.name} stock`} onClick={() => adjust.mutate({ id: d.id, qty: d.quantity + 1 })}>
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>

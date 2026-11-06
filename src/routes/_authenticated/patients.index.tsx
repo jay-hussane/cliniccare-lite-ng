@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Phone, Search, User } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export const Route = createFileRoute("/_authenticated/patients/")({
   head: () => ({
@@ -27,6 +28,8 @@ export const Route = createFileRoute("/_authenticated/patients/")({
 function PatientsPage() {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
+  const { data: me } = useCurrentUser();
+  const canRegisterPatients = me?.role === "admin" || me?.role === "nurse" || me?.role === "receptionist";
 
   const { data: patients = [], isLoading } = useQuery({
     queryKey: ["patients", q],
@@ -47,7 +50,7 @@ function PatientsPage() {
       <PageHeader
         title="Patients"
         subtitle="Register and find patients quickly"
-        action={
+        action={canRegisterPatients ? (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button size="lg" className="gap-2">
@@ -59,7 +62,7 @@ function PatientsPage() {
               <PatientForm onDone={() => setOpen(false)} />
             </DialogContent>
           </Dialog>
-        }
+        ) : undefined}
       />
 
       <Card className="p-3 md:p-4 mb-4">
