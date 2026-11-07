@@ -7,15 +7,25 @@ export type DoctorOption = { id: string; full_name: string };
 export function useDoctors() {
   return useQuery({
     queryKey: ["doctors"],
-    staleTime: 5 * 60_000,
+    staleTime: 30_000,
     queryFn: async () => {
+      const { data: roleRows, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "doctor");
+      if (rolesError) throw rolesError;
+
+      const doctorIds = [...new Set((roleRows ?? []).map((row) => row.user_id))];
+      if (doctorIds.length === 0) return [];
+
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, user_roles!inner(role)")
-        .eq("user_roles.role", "doctor")
+        .select("id, full_name")
+        .in("id", doctorIds)
+        .eq("is_active", true)
         .order("full_name", { ascending: true });
       if (error) throw error;
-      return (data ?? []).map((d) => ({ id: d.id, full_name: d.full_name })) as DoctorOption[];
+      return (data ?? []) as DoctorOption[];
     },
   });
 }

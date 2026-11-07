@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { formatDate, formatNaira } from "@/lib/format";
-import { statusLabel } from "@/lib/queue";
+import { isPaymentConfirmed, statusLabel } from "@/lib/queue";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Search, Send, ClipboardList, Banknote, Clock } from "lucide-react";
@@ -54,14 +54,16 @@ function ConsultationsPage() {
       <Tabs defaultValue="queue">
         <TabsList className="mb-4">
           <TabsTrigger value="queue">Patient queue</TabsTrigger>
-          <TabsTrigger value="record">Record visit</TabsTrigger>
+          {me?.role !== "receptionist" && <TabsTrigger value="record">Record visit</TabsTrigger>}
         </TabsList>
         <TabsContent value="queue" className="mt-0">
           <QueueTab meId={me?.id ?? null} isAdmin={me?.isAdmin ?? false} role={me?.role ?? "receptionist"} />
         </TabsContent>
-        <TabsContent value="record" className="mt-0">
-          <RecordVisitTab />
-        </TabsContent>
+        {me?.role !== "receptionist" && (
+          <TabsContent value="record" className="mt-0">
+            <RecordVisitTab />
+          </TabsContent>
+        )}
       </Tabs>
     </>
   );
@@ -77,7 +79,7 @@ function QueueTab({ meId, isAdmin, role }: { meId: string | null; isAdmin: boole
   const [mineOnly, setMineOnly] = useState(role === "doctor");
   const [openVisit, setOpenVisit] = useState<QueueItem | null>(null);
 
-  const { data: doctors = [] } = useDoctors();
+  const { data: doctors = [], isLoading: doctorsLoading, isError: doctorsError } = useDoctors();
 
   const { data: patients = [] } = useQuery({
     queryKey: ["patients-send", q],
@@ -115,10 +117,31 @@ function QueueTab({ meId, isAdmin, role }: { meId: string | null; isAdmin: boole
 
   const selected = patients.find((p) => p.id === patientId);
 
+  const { data: paymentProof, isLoading: paymentLoading } = useQuery({
+    queryKey: ["patient-payment-proof", selected?.id],
+    enabled: !!selected?.id,
+    queryFn: async () => {
+      if (!selected?.id) return null;
+      const { data, error } = await supabase
+        .from("billing")
+        .select("id, service_description, amount, payment_method, created_at")
+        .eq("patient_id", selected.id)
+        .gt("amount", 0)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const paymentConfirmed = paymentProof ? isPaymentConfirmed(Number(paymentProof.amount)) : false;
+  const canAssign = role === "receptionist" || isAdmin;
+
   const sendMutation = useMutation({
     mutationFn: async () => {
       if (!selected) throw new Error("Select a patient");
       if (!doctorId) throw new Error("Choose the doctor to see the patient");
+      if (!paymentConfirmed) throw new Error("Record a payment receipt before sending this patient to a doctor.");
       const doctor = doctors.find((d) => d.id === doctorId);
       const { error } = await supabase.from("consultations").insert({
         patient_id: selected.id,
@@ -135,6 +158,7 @@ function QueueTab({ meId, isAdmin, role }: { meId: string | null; isAdmin: boole
       qc.invalidateQueries({ queryKey: ["visit-queue"] });
       qc.invalidateQueries({ queryKey: ["doctor-banner"] });
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["patient-payment-proof"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -143,13 +167,13 @@ function QueueTab({ meId, isAdmin, role }: { meId: string | null; isAdmin: boole
 
   return (
     <div className="grid lg:grid-cols-2 gap-5">
-      <Card className="p-5 h-fit">
+      {canAssign && <Card className="p-5 h-fit">
         <div className="flex items-center gap-2 mb-1">
           <Send className="h-4 w-4 text-primary" />
           <h3 className="font-semibold">Send patient to doctor</h3>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
-          The patient joins the doctor's queue. Their visit shows as "Not paid" until reception records payment.
+          Select a patient with a recorded payment, then choose an active doctor to send them to the queue.
         </p>
 
         <Label>Patient</Label>
@@ -172,8 +196,22 @@ function QueueTab({ meId, isAdmin, role }: { meId: string | null; isAdmin: boole
           {patients.length === 0 && <div className="p-3 text-sm text-muted-foreground">No patients found.</div>}
         </div>
 
+        {selected && (
+          paymentLoading ? (
+            <p className="mb-4 text-sm text-muted-foreground">Checking payment receipt…</p>
+          ) : paymentConfirmed && paymentProof ? (
+            <div className="mb-4 rounded-md border border-secondary/40 bg-secondary/10 px-3 py-2 text-sm text-secondary">
+              Payment confirmed · {paymentProof.service_description} · {formatNaira(paymentProof.amount)} · {paymentProof.payment_method}
+            </div>
+          ) : (
+            <div className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              A payment receipt is required before assignment. <Link to="/billing" className="font-medium underline">Open Billing</Link> to record payment.
+            </div>
+          )
+        )}
+
         <Label>Doctor</Label>
-        <Select value={doctorId} onValueChange={setDoctorId}>
+        <Select value={doctorId} onValueChange={setDoctorId} disabled={doctorsLoading || doctors.length === 0}>
           <SelectTrigger className="h-11 mt-1.5 mb-4 w-full">
             <SelectValue placeholder="Choose a doctor" />
           </SelectTrigger>
@@ -185,17 +223,22 @@ function QueueTab({ meId, isAdmin, role }: { meId: string | null; isAdmin: boole
             ))}
           </SelectContent>
         </Select>
+        {doctorsError ? (
+          <p className="-mt-3 mb-4 text-sm text-destructive">Unable to load doctors. Refresh and try again.</p>
+        ) : !doctorsLoading && doctors.length === 0 ? (
+          <p className="-mt-3 mb-4 text-sm text-muted-foreground">No active doctor accounts are available.</p>
+        ) : null}
 
         <Button
           size="lg"
           className="w-full gap-2"
-          disabled={sendMutation.isPending || !selected || !doctorId}
+          disabled={sendMutation.isPending || !selected || !doctorId || !paymentConfirmed || paymentLoading || doctorsLoading || doctors.length === 0}
           onClick={() => sendMutation.mutate()}
         >
           <Send className="h-4 w-4" />
-          {sendMutation.isPending ? "Sending…" : selected ? `Send ${selected.full_name} to doctor` : "Send to doctor"}
+          {sendMutation.isPending ? "Sending…" : !selected ? "Select a patient" : !paymentConfirmed ? "Confirm payment first" : !doctorId ? "Choose a doctor" : `Send ${selected.full_name} to doctor`}
         </Button>
-      </Card>
+      </Card>}
 
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3 mb-3">

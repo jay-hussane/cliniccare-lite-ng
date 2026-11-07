@@ -15,6 +15,20 @@
       "when": 1793858763591,
       "tag": "0001_tighten_role_based_privileges",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794027576233,
+      "tag": "0002_require_payment_for_doctor_assignment",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794027637811,
+      "tag": "0003_require_positive_receipt_for_assignment",
+      "breakpoints": true
     }
   ]
 }

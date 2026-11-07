@@ -1,0 +1,1 @@
+Doctor assignment requires a positive billing receipt; enforce eligibility in the database trigger and mirror it in the consultation screen so assignments cannot bypass payment confirmation.

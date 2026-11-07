@@ -12,3 +12,8 @@ export const OPEN_STATUSES: VisitStatus[] = ["waiting", "in_consultation"];
 export function statusLabel(status: string): string {
   return VISIT_STATUS_LABELS[status as VisitStatus] ?? status;
 }
+
+/** A recorded positive-amount receipt is the payment confirmation for assignment. */
+export function isPaymentConfirmed(amount: number): boolean {
+  return Number.isFinite(amount) && amount > 0;
+}
